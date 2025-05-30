@@ -122,6 +122,36 @@ app.post('/identify', async (c) => {
       }
     }
 
+    if (shouldCreateSecondary) {
+      await db.prepare(
+        `INSERT INTO Contact (email, phoneNumber, linkedId, linkPrecedence, createdAt, updatedAt) 
+         VALUES (?, ?, ?, 'secondary', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`
+      ).bind(email || null, phoneNumber || null, primaryContactId).run();
+    }
+
+    const allRelatedContacts = await db.prepare(
+      `SELECT * FROM Contact 
+       WHERE (id = ? OR linkedId = ?) AND deletedAt IS NULL 
+       ORDER BY createdAt ASC`
+    ).bind(primaryContactId, primaryContactId).all();
+
+    const relatedContacts = allRelatedContacts.results || [];
+
+    const emails = [...new Set(relatedContacts.map((c: any) => c.email).filter(Boolean))];
+    const phoneNumbers = [...new Set(relatedContacts.map((c: any) => c.phoneNumber).filter(Boolean))];
+    const secondaryContactIds = relatedContacts
+      .filter((c: any) => c.linkPrecedence === 'secondary')
+      .map((c: any) => c.id);
+
+    return c.json({
+      contact: {
+        primaryContactId: primaryContactId,
+        emails,
+        phoneNumbers,
+        secondaryContactIds,
+      },
+    });
+
     
     
   } catch (error) {
