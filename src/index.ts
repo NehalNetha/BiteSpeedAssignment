@@ -25,7 +25,30 @@ app.post('/identify', async (c) => {
 
     const db = c.env.DB;
 
-    let contacts = [];
+    let existingContacts;
+
+    if (email && phoneNumber) {
+      existingContacts = await db.prepare(
+        `SELECT * FROM Contact 
+         WHERE (email = ? OR phoneNumber = ?) 
+         AND deletedAt IS NULL 
+         ORDER BY createdAt ASC`
+      ).bind(email, phoneNumber).all();
+    } else if (email) {
+      existingContacts = await db.prepare(
+        `SELECT * FROM Contact 
+         WHERE email = ? AND deletedAt IS NULL 
+         ORDER BY createdAt ASC`
+      ).bind(email).all();
+    } else {
+      existingContacts = await db.prepare(
+        `SELECT * FROM Contact 
+         WHERE phoneNumber = ? AND deletedAt IS NULL 
+         ORDER BY createdAt ASC`
+      ).bind(phoneNumber).all();
+    }
+
+    const contacts = existingContacts.results || [];
 
     if (contacts.length === 0) {
       const result = await db.prepare(
@@ -43,8 +66,8 @@ app.post('/identify', async (c) => {
       });
     }
 
-
-
+    
+    return c.json({ email, phoneNumber });
     
   } catch (error) {
     console.error('Error in identify endpoint:', error);
