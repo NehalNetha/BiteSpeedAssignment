@@ -1,0 +1,16 @@
+
+
+1. adding new contact email
+2. adding new phone
+3. adding new contact and email
+4. adding new email but existing phone - create secondary contact and link them
+5. adding new phone but existing email - same as 4
+6. existing information both email and phone - primary - return as formatted
+7. existing information both email and phone - secondary - return as formatted
+8. existing information only phone - shared phone number - return as formatted
+9. existing information both email - only primary  - return as formatted
+9. existing information both email - only secondary  - return as formatted
+10. different phone and email, request using either same email or phone - should put the oldeest one as primary and link them 
+
+
+
