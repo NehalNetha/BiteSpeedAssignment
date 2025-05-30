@@ -22,6 +22,29 @@ app.post('/identify', async (c) => {
     if (!email && !phoneNumber) {
       return c.json({ error: 'Either email or phoneNumber must be provided' }, 400);
     }
+
+    const db = c.env.DB;
+
+    let contacts = [];
+
+    if (contacts.length === 0) {
+      const result = await db.prepare(
+        `INSERT INTO Contact (email, phoneNumber, linkPrecedence, createdAt, updatedAt) 
+         VALUES (?, ?, 'primary', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`
+      ).bind(email || null, phoneNumber || null).run();
+
+      return c.json({
+        contact: {
+          primaryContactId: result.meta.last_row_id,
+          emails: email ? [email] : [],
+          phoneNumbers: phoneNumber ? [phoneNumber] : [],
+          secondaryContactIds: [],
+        },
+      });
+    }
+
+
+
     
   } catch (error) {
     console.error('Error in identify endpoint:', error);
